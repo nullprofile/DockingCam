@@ -15,12 +15,18 @@ namespace OLDD_camera.Camera
         private int _id;
         private int _idTextureNoise;
 
-        private Texture2D _textureVLineOLDD;
-        private Texture2D _textureHLineOLDD;
-        private Texture2D _textureVLine;
-        private Texture2D _textureHLine;
-        private Texture2D _textureVLineBack;
-        private Texture2D _textureHLineBack;
+        private Texture2D _VLineAttitude;
+        private Texture2D _HLineAttitude;
+
+        private Texture2D _VLineDesiredVelocity;
+        private Texture2D _HLineDesiredVelocity;
+        private Texture2D _VLineDesiredVelocityBack;
+        private Texture2D _HLineDesiredVelocityBack;
+
+        private Texture2D _VLineCurrentVelocity;
+        private Texture2D _HLineCurrentVelocity;
+        private Texture2D _VLineCurrentVelocityBack;
+        private Texture2D _HLineCurrentVelocityBack;
 
         internal readonly GameObject _moduleDockingNodeGameObject;
         private TargetHelper _target;
@@ -34,47 +40,16 @@ namespace OLDD_camera.Camera
         private bool _rotatorState = true;
         private readonly float _maxSpeed = 2;
 
-        private Color _targetCrossColorOLDD = new Color(0, 0, 0.9f, 1);
-        private Color _targetCrossColorDPAI = new Color(0.5f, .0f, 0, 1);
-        private Color _targetCrossColorBack = new Color(.9f, 0, 0, 1);
+        private Color _colorAttitude = new Color(0, 0, 0.9f, 1);
+        private Color _colorDesiredVelocity = new Color(0.0f, .9f, 0, 1);
+        private Color _colorDesiredVelocityBack = new Color(.9f, 0, 0, 1);
+        private Color _colorCurrentVelocity = new Color(.9f, .9f, 0, 1);
+        private Color _colorCurrentVelocityBack = new Color(.9f, 0, .9f, 1);
 
         private string _lastVesselName;
         private string _windowLabelSuffix;
 
         Modules.DockingCameraModule _dcm;
-
-        public Color TargetCrossColorOLDD
-        {
-
-            get { return _targetCrossColorOLDD; }
-            set
-            {
-                _targetCrossColorOLDD = value;
-                _textureVLineOLDD = Util.MonoColorVerticalLineTexture(_targetCrossColorOLDD, (int)WindowSize * WindowSizeCoef);
-                _textureHLineOLDD = Util.MonoColorHorizontalLineTexture(_targetCrossColorOLDD, (int)WindowSize * WindowSizeCoef);
-            }
-        }
-
-        public Color TargetCrossColorDPAI
-        {
-            get { return _targetCrossColorDPAI; }
-            set
-            {
-                _targetCrossColorDPAI = value;
-                _textureVLine = Util.MonoColorVerticalLineTexture(TargetCrossColorDPAI, (int)WindowSize * WindowSizeCoef);
-                _textureHLine = Util.MonoColorHorizontalLineTexture(TargetCrossColorDPAI, (int)WindowSize * WindowSizeCoef);
-            }
-        }
-        public Color TargetCrossColorBack
-        {
-            get { return _targetCrossColorBack; }
-            set
-            {
-                _targetCrossColorBack = value;
-                _textureVLineBack = Util.MonoColorVerticalLineTexture(TargetCrossColorBack, (int)WindowSize * WindowSizeCoef);
-                _textureHLineBack = Util.MonoColorHorizontalLineTexture(TargetCrossColorBack, (int)WindowSize * WindowSizeCoef);
-            }
-        }
         
 
         public void UpdateLocalPosition(Modules.DockingCameraModule dcm)
@@ -142,12 +117,18 @@ namespace OLDD_camera.Camera
         protected override void InitTextures()
         {
             base.InitTextures();
-            _textureVLineOLDD = Util.MonoColorVerticalLineTexture(TargetCrossColorOLDD, (int)WindowSize * WindowSizeCoef);
-            _textureHLineOLDD = Util.MonoColorHorizontalLineTexture(TargetCrossColorOLDD, (int)WindowSize * WindowSizeCoef);
-            _textureVLine = Util.MonoColorVerticalLineTexture(TargetCrossColorDPAI, (int)WindowSize * WindowSizeCoef);
-            _textureHLine = Util.MonoColorHorizontalLineTexture(TargetCrossColorDPAI, (int)WindowSize * WindowSizeCoef);
-            _textureVLineBack = Util.MonoColorVerticalLineTexture(_targetCrossColorBack, (int)WindowSize * WindowSizeCoef);
-            _textureHLineBack = Util.MonoColorHorizontalLineTexture(_targetCrossColorBack, (int)WindowSize * WindowSizeCoef);
+            _VLineAttitude = Util.MonoColorVerticalLineTexture(_colorAttitude, (int)WindowSize * WindowSizeCoef);
+            _HLineAttitude = Util.MonoColorHorizontalLineTexture(_colorAttitude, (int)WindowSize * WindowSizeCoef);
+
+            _VLineDesiredVelocity = Util.MonoColorVerticalLineTexture(_colorDesiredVelocity, (int)WindowSize * WindowSizeCoef);
+            _HLineDesiredVelocity = Util.MonoColorHorizontalLineTexture(_colorDesiredVelocity, (int)WindowSize * WindowSizeCoef);
+            _VLineDesiredVelocityBack = Util.MonoColorVerticalLineTexture(_colorDesiredVelocityBack, (int)WindowSize * WindowSizeCoef);
+            _HLineDesiredVelocityBack = Util.MonoColorHorizontalLineTexture(_colorDesiredVelocityBack, (int)WindowSize * WindowSizeCoef);
+
+            _VLineCurrentVelocity = Util.MonoColorVerticalLineTexture(_colorCurrentVelocity, (int)WindowSize * WindowSizeCoef);
+            _HLineCurrentVelocity = Util.MonoColorHorizontalLineTexture(_colorCurrentVelocity, (int)WindowSize * WindowSizeCoef);
+            _VLineCurrentVelocityBack = Util.MonoColorVerticalLineTexture(_colorCurrentVelocityBack, (int)WindowSize * WindowSizeCoef);
+            _HLineCurrentVelocityBack = Util.MonoColorHorizontalLineTexture(_colorCurrentVelocityBack, (int)WindowSize * WindowSizeCoef);
         }
 
         protected override void ExtendedDrawWindowL1()
@@ -274,17 +255,30 @@ namespace OLDD_camera.Camera
 
         private void GetCross()
         {
-            if (TargetCrossDPAI && _target.IsDockPort)
+            if (TargetCrossDPAI)
             {
-                var textV = _target.LookForward ? _textureVLine : _textureVLineBack;
-                var textH = _target.LookForward ? _textureHLine : _textureHLineBack;
-                var tx = _target.TargetMoveHelpX;
-                var ty = _target.TargetMoveHelpY;
-                if (!_target.LookForward)
-                {
-                    tx = 1 - tx;
-                    ty = 1 - ty;
-                }
+                var textV = _target.CurrentVelocityMarker.Forward ? _VLineCurrentVelocity : _VLineCurrentVelocityBack;
+                var textH = _target.CurrentVelocityMarker.Forward ? _HLineCurrentVelocity : _HLineCurrentVelocityBack;
+                float tx;
+                float ty;
+                tx = _target.CurrentVelocityMarker.X;
+                ty = 1.0f - _target.CurrentVelocityMarker.Y;
+
+                GUI.DrawTexture(new Rect(TexturePosition.xMin + Math.Abs(tx * TexturePosition.width) % TexturePosition.width,
+                    TexturePosition.yMin, 1, TexturePosition.height), textV);
+                GUI.DrawTexture(new Rect(TexturePosition.xMin, TexturePosition.yMin
+                    + Math.Abs(ty * TexturePosition.height) % TexturePosition.height, TexturePosition.width, 1), textH);
+            }
+
+            if (TargetCrossDPAI)
+            {
+                var textV = _target.DesiredVelocityMarker.Forward ? _VLineDesiredVelocity : _VLineDesiredVelocityBack;
+                var textH = _target.DesiredVelocityMarker.Forward ? _HLineDesiredVelocity : _HLineDesiredVelocityBack;
+                float tx;
+                float ty;
+                tx = _target.DesiredVelocityMarker.X;
+                ty = 1.0f - _target.DesiredVelocityMarker.Y;
+
                 GUI.DrawTexture(new Rect(TexturePosition.xMin + Math.Abs(tx * TexturePosition.width) % TexturePosition.width,
                     TexturePosition.yMin, 1, TexturePosition.height), textV);
                 GUI.DrawTexture(new Rect(TexturePosition.xMin, TexturePosition.yMin
@@ -293,18 +287,15 @@ namespace OLDD_camera.Camera
 
             if (TargetCrossOLDD && _target.IsDockPort)
             {
-                var tx = TexturePosition.width / 2;
-                var ty = TexturePosition.height / 2;
-                if (Mathf.Abs(_target.AngleX) > 20)
-                    tx += (_target.AngleX > 0 ? -1 : 1) * (TexturePosition.width / 2 - 1);
-                else
-                    tx += TexturePosition.width / 40 * -_target.AngleX;
-                if (Mathf.Abs(_target.AngleY) > 20)
-                    ty += (_target.AngleY > 0 ? -1 : 1) * (TexturePosition.height / 2 - 1);
-                else
-                    ty += TexturePosition.height / 40 * -_target.AngleY;
-                GUI.DrawTexture(new Rect(TexturePosition.xMin + tx, TexturePosition.yMin, 1, TexturePosition.height), _textureVLineOLDD);
-                GUI.DrawTexture(new Rect(TexturePosition.xMin, TexturePosition.yMin + ty, TexturePosition.width, 1), _textureHLineOLDD);
+                float tx;
+                float ty;
+                tx = 0.5f - _target.AngleY / 360.0f;
+                ty = 0.5f + _target.AngleX / 360.0f;
+
+                GUI.DrawTexture(new Rect(TexturePosition.xMin + Math.Abs(tx * TexturePosition.width) % TexturePosition.width,
+                    TexturePosition.yMin, 1, TexturePosition.height), _VLineAttitude);
+                GUI.DrawTexture(new Rect(TexturePosition.xMin, TexturePosition.yMin
+                    + Math.Abs(ty * TexturePosition.height) % TexturePosition.height, TexturePosition.width, 1), _HLineAttitude);
             }
         }
 
@@ -332,29 +323,29 @@ namespace OLDD_camera.Camera
                 GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("Dist:" + dataFormat, _target.Destination), Styles.Label13B);
                 i += .2f;
 
-                GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("dX:" + dataFormat, _target.DX));
-                GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("dY:" + dataFormat, _target.DY));
-                GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("dZ:" + dataFormat, _target.DZ));
+                GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("dX:" + dataFormat, -_target.DPos.x));
+                GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("dY:" + dataFormat, -_target.DPos.y));
+                GUI.Label(new Rect(TexturePosition.xMax - 70, 34 + i++ * stringOffset, 70, 20), string.Format("dZ:" + dataFormat, -_target.DPos.z));
                 i += .2f;
 
-                if (Math.Abs(_target.SpeedX) > _maxSpeed && Math.Abs(_target.Destination) < 200)
-                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vX:{_target.SpeedX:f2}", Styles.RedLabel13);
+                if (Math.Abs(_target.Velocity.x) > _maxSpeed && Math.Abs(_target.Destination) < 200)
+                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vX:{_target.Velocity.x:f2}", Styles.RedLabel13);
                 else
-                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vX:{_target.SpeedX:f2}", Styles.Label13);
+                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vX:{_target.Velocity.x:f2}", Styles.Label13);
 
-                if (Math.Abs(_target.SpeedY) > _maxSpeed && Math.Abs(_target.Destination) < 200)
-                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vY:{_target.SpeedY:f2}", Styles.RedLabel13);
+                if (Math.Abs(_target.Velocity.y) > _maxSpeed && Math.Abs(_target.Destination) < 200)
+                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vY:{_target.Velocity.y:f2}", Styles.RedLabel13);
                 else
-                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vY:{_target.SpeedY:f2}", Styles.Label13);
+                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vY:{_target.Velocity.y:f2}", Styles.Label13);
 
-                if (Math.Abs(_target.SpeedZ) > _maxSpeed && Math.Abs(_target.Destination) < 200)
-                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vZ:{_target.SpeedZ:f2}", Styles.RedLabel13);
+                if (Math.Abs(_target.Velocity.z) > _maxSpeed && Math.Abs(_target.Destination) < 200)
+                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vZ:{_target.Velocity.z:f2}", Styles.RedLabel13);
                 else
-                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vZ:{_target.SpeedZ:f2}", Styles.Label13);
+                    GUI.Label(new Rect(TexturePosition.xMax - 70, 38 + i++ * stringOffset, 70, 20), $"vZ:{_target.Velocity.z:f2}", Styles.Label13);
                 i += .2f;
 
-                GUI.Label(new Rect(TexturePosition.xMax - 70, 40 + i++ * stringOffset, 70, 20), $"Yaw:{_target.AngleX:f0}°");
-                GUI.Label(new Rect(TexturePosition.xMax - 70, 40 + i++ * stringOffset, 70, 20), $"Pitch:{_target.AngleY:f0}°");
+                GUI.Label(new Rect(TexturePosition.xMax - 70, 40 + i++ * stringOffset, 70, 20), $"Yaw:{_target.AngleY:f0}°");
+                GUI.Label(new Rect(TexturePosition.xMax - 70, 40 + i++ * stringOffset, 70, 20), $"Pitch:{_target.AngleX:f0}°");
                 GUI.Label(new Rect(TexturePosition.xMax - 70, 40 + i * stringOffset, 70, 20), $"Roll:{_target.AngleZ:f0}°");
             }
         }
