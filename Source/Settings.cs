@@ -13,7 +13,7 @@ namespace OLDD_camera
     // http://forum.kerbalspaceprogram.com/index.php?/topic/147576-modders-notes-for-ksp-12/#comment-2754813
     // search for "Mod integration into Stock Settings
     // HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().
-    public class KURSSettings : GameParameters.CustomParameterNode
+    public class KURSSettings_1 : GameParameters.CustomParameterNode
     {
         public override string Title { get { return "General"; } }
         public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
@@ -77,9 +77,7 @@ namespace OLDD_camera
 
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
-        {
-
-        }
+        {        }
 
         bool oDist2500;
         bool oDist9999;
@@ -134,7 +132,7 @@ namespace OLDD_camera
 
             if (HighLogic.CurrentGame != null && HighLogic.CurrentGame.Parameters != null)
             {
-                if (OLDD_camera.Utils.Styles.KspSkin != HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+                if (OLDD_camera.Utils.Styles.KspSkin != HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
                 {
                     OLDD_camera.Utils.Styles.InitStyles();
                 }
@@ -147,4 +145,34 @@ namespace OLDD_camera
             return null;
         }
     }
+
+
+
+    public class KURSSettings_2 : GameParameters.CustomParameterNode
+    {
+        public override string Title { get { return "Overlay"; } }
+        public override GameParameters.GameMode GameMode { get { return GameParameters.GameMode.ANY; } }
+        public override string Section { get { return "Docking Camera KURS Style"; } }
+        public override string DisplaySection { get { return "Docking Camera KURS Style"; } }
+        public override int SectionOrder { get { return 2; } }
+        public override bool HasPresets { get { return false; } }
+
+        [GameParameters.CustomParameterUI("Use Dehim's changes",
+            toolTip = "Alternate Overlay")]
+        public bool altOverlay = false;
+
+
+        public override void SetDifficultyPreset(GameParameters.Preset preset)
+        { }
+
+        public override bool Enabled(MemberInfo member, GameParameters parameters)
+        { return true; }
+
+        public override bool Interactible(MemberInfo member, GameParameters parameters)
+        { return true; }
+
+        public override IList ValidValues(MemberInfo member)
+        { return null; }
+    }
+
 }

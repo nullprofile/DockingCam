@@ -35,7 +35,7 @@ namespace OLDD_camera.CameraAdjust
         void CreateCameraObject()
         {
             // Try to create a game object using our marker mesh
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useNodeObj)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useNodeObj)
             {
                 cameraMarker = Instantiate(GameDatabase.Instance.GetModel("DockingCamKURS/Assets/PWBComMarker/PWBTargetComMarker"));
                 // Make it a bit smaller - we need to fix the model for this
@@ -107,9 +107,9 @@ namespace OLDD_camera.CameraAdjust
 
         public void OnGUI()
         {
-            if (!active || (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().hideOnF2 && DockCamToolbarButton.hideUI))
+            if (!active || (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().hideOnF2 && DockCamToolbarButton.hideUI))
                 return;
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
                 GUI.skin = HighLogic.Skin;
 
             winPos =ClickThruBlocker.GUILayoutWindow(CamAdjId, winPos, DrawGUI, "Camera Adjuster: " + dcm.windowLabel);

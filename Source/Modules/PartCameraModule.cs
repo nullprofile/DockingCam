@@ -121,7 +121,7 @@ namespace OLDD_camera.Modules
         {
             if (_camera == null) return;
 
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().FCS && part.vessel != FlightGlobals.ActiveVessel && IsEnabled)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().FCS && part.vessel != FlightGlobals.ActiveVessel && IsEnabled)
             {
                 var dist = Vector3.Distance(FlightGlobals.ActiveVessel.transform.position, part.vessel.transform.position);
                 var treshhold = vessel.vesselRanges.orbit.load;
