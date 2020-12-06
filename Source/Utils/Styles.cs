@@ -40,8 +40,8 @@ namespace OLDD_camera.Utils
 
             if (HighLogic.CurrentGame != null && HighLogic.CurrentGame.Parameters != null)
             {
-                KspSkin = HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin;
-                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+                KspSkin = HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin;
+                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
                 {
                     Label13.fontSize += KSP_SKIN_ADJUST;
                     Label13B.fontSize += KSP_SKIN_ADJUST;

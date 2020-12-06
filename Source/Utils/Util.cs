@@ -18,7 +18,7 @@ namespace OLDD_camera.Utils
 
         private void OnGUI()
         {
-            if  (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().hideOnF2 && DockCamToolbarButton.hideUI)
+            if  (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().hideOnF2 && DockCamToolbarButton.hideUI)
                 return;
             //UpdateGUIFunction?.Invoke();
             //if (UpdateGUIFunction != null) //ddd
@@ -26,11 +26,11 @@ namespace OLDD_camera.Utils
             {
                 //UpdateGUIFunction(); //ddd
 
-                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
                 {
                     GUI.skin = HighLogic.Skin;
                 }
-                if (OLDD_camera.Utils.Styles.KspSkin != HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+                if (OLDD_camera.Utils.Styles.KspSkin != HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
                 {
                     OLDD_camera.Utils.Styles.InitStyles();
                 }

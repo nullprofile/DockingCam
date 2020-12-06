@@ -59,6 +59,7 @@ namespace OLDD_camera.Camera
 
         protected int WindowId = Util.GetRandomInt();
         public static int SettingsWinID = Util.GetRandomInt();
+        public static int HelpWinId = Util.GetRandomInt();
 
         internal bool IsActive;
         internal bool IsButtonOff;
@@ -84,7 +85,7 @@ namespace OLDD_camera.Camera
         {
             oWindowSizeInit = windowSizeInit;
             WindowSize = GameSettings.UI_SCALE * windowSizeInit / 2;
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
             {
                 sidebarWidthOffset = 40 * GameSettings.UI_SCALE;
                 WindowSize += sidebarWidthOffset;
@@ -95,7 +96,7 @@ namespace OLDD_camera.Camera
             MaxWindowSizeCoef = 1;
             while ((MaxWindowSizeCoef + 2) * WindowSize < Screen.height && MaxWindowSizeCoef < 10)
                 MaxWindowSizeCoef++;
-            WindowSizeCoef = Math.Min(HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().defaultCamWindowSize, MaxWindowSizeCoef);
+            WindowSizeCoef = Math.Min(HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().defaultCamWindowSize, MaxWindowSizeCoef);
             ThisPart = thisPart;
             SubWindowLabel = windowLabel;
             WindowLabel = windowLabel;
@@ -142,7 +143,7 @@ namespace OLDD_camera.Camera
         {
             WindowPosition.width = WindowSize * WindowSizeCoef;
             WindowPosition.height = WindowSize * WindowSizeCoef + 34f;
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
                 sidebarWidthOffset = 40 * GameSettings.UI_SCALE;
             else
                 sidebarWidthOffset = 0;
@@ -154,7 +155,7 @@ namespace OLDD_camera.Camera
             float lineHeight;
             float titleHeight;
 
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
             {
                 lineHeight = 14 * GameSettings.UI_SCALE;
                 titleHeight = 34;
@@ -268,7 +269,7 @@ namespace OLDD_camera.Camera
         protected virtual void ExtendedDrawWindowL1()
         {
             var widthOffset = WindowPosition.width - 90;
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
             {
                 widthOffset -= sidebarWidthOffset;
             }
@@ -343,7 +344,7 @@ namespace OLDD_camera.Camera
 
             if (IsAuxiliaryWindowOpen)
                 GUI.DrawTexture(new Rect(TexturePosition.width + 8, 34, GameSettings.UI_SCALE * 1, TexturePosition.height), _textureSeparator); //Separator
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
+            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useKSPskin)
             {
                 if (GUI.Button(new Rect(WindowPosition.width - 20, 3, GameSettings.UI_SCALE * 15, GameSettings.UI_SCALE * 15), "x"))
                     IsButtonOff = true;
