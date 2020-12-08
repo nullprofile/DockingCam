@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using KSP.IO;
 using OLDD_camera.Utils;
 using UnityEngine;
 using ClickThroughFix;
@@ -11,13 +12,15 @@ namespace OLDD_camera.Camera
 {
     public abstract class BaseCamera
     {
+
         protected static int WindowCount;
         protected static double ElectricChargeAmount;
         internal double electricchargeCost = 0.02d;
         public static Material CurrentShader;
         protected UpdateGUIObject UpdateGUIObject;
 
-        internal Rect WindowPosition;
+        internal Rect WindowPosition = new Rect(0, 400, 100, 100);
+        static Rect _lastWindowPosition;
         internal Rect TexturePosition;
         internal float sidebarWidthOffset = 0; // used for scaling stock KSP skin
 
@@ -111,6 +114,7 @@ namespace OLDD_camera.Camera
 
                 GameObject updateGUIHolder = new GameObject();
                 UpdateGUIObject = updateGUIHolder.AddComponent<UpdateGUIObject>();
+                LoadWinSettings();
             }
         }
 
@@ -197,7 +201,7 @@ namespace OLDD_camera.Camera
                         camera.CopyFrom(cameraExample);
                         camera.name = string.Format("{1} copy of {0}", CameraNames[i], WindowCount);
                         camera.targetTexture = RenderTexture;
-                   }
+                    }
                     return camera;
                 }).ToList();
         }
@@ -218,7 +222,10 @@ namespace OLDD_camera.Camera
             InitCameras();
             IsActive = true;
             //UpdateGUIObject.UpdateGUIFunction += Begin; //ddd
-            UpdateGUIObject.updateGUIFunction += Begin; //lll
+            if (UpdateGUIObject != null)
+                UpdateGUIObject.updateGUIFunction += Begin; //lll
+            else
+                Log.Error("UpdateGUIObject is null");
         }
 
         /// <summary>
@@ -235,7 +242,7 @@ namespace OLDD_camera.Camera
                 UpdateGUIObject.updateGUIFunction -= Begin; //lll
         }
 
-        public void setECusageCost(double ECAmount) 
+        public void setECusageCost(double ECAmount)
         {
             electricchargeCost = ECAmount;
         }
@@ -261,6 +268,13 @@ namespace OLDD_camera.Camera
             ExtendedDrawWindowL2();
             ExtendedDrawWindowL3();
             GUI.DragWindow();
+
+
+            if (WindowPosition.x == _lastWindowPosition.x && WindowPosition.y == _lastWindowPosition.y) return;
+            _lastWindowPosition.x = WindowPosition.x;
+            _lastWindowPosition.y = WindowPosition.y;
+
+            WindowSettings.SaveCameraWinSettings(WindowPosition);
         }
 
         /// <summary>
@@ -383,10 +397,7 @@ namespace OLDD_camera.Camera
                 if (WindowSizeCoef < 2)
                     WindowSizeCoef = MaxWindowSizeCoef;
 
-                Deactivate();
-                InitWindow();
-                InitTextures();
-                Activate();
+                DoResizeWindow(WindowSizeCoef);
                 //IsAuxiliaryWindowOpen = false;
 
                 IsAuxiliaryWindowButtonPres = IsAuxiliaryWindowOpen;
@@ -396,10 +407,7 @@ namespace OLDD_camera.Camera
             {
                 WindowSizeCoef = ((WindowSizeCoef - 1) % (MaxWindowSizeCoef - 1)) + 2;
 
-                Deactivate();
-                InitWindow();
-                InitTextures();
-                Activate();
+                DoResizeWindow(WindowSizeCoef);
 
                 IsAuxiliaryWindowButtonPres = IsAuxiliaryWindowOpen;
             }
@@ -407,7 +415,31 @@ namespace OLDD_camera.Camera
                 CurrentZoom = GUI.HorizontalSlider(new Rect(TexturePosition.width / 2 - 80, GUI.skin.font.lineHeight + 10, 160, 10), CurrentZoom, MaxZoom, MinZoom);
         }
 
-#endregion DRAW LAYERS
+        internal void DoResizeWindow(int WindowSizeCf)
+        {
+            WindowSizeCoef = WindowSizeCf;
+            bool isActive = IsActive;
+            if (isActive)
+                Deactivate();
+            InitWindow();
+            InitTextures();
+            if (isActive)
+                Activate();
+
+            WindowSettings.SaveSettings(WindowSizeCoef);
+        }
+
+        void LoadWinSettings()
+        {
+            if (WindowSettings.LoadSettings())
+            {
+                WindowSizeCoef = WindowSettings.WindowSizeCoef;
+                WindowPosition = WindowSettings.cameraWindowPosition;
+                Log.Info("LoadWinSettings, WindowPosition: " + WindowPosition);
+            }
+            DoResizeWindow(WindowSizeCoef);
+        }
+        #endregion DRAW LAYERS
 
         private float GetX(float x, float z)
         {
@@ -460,6 +492,7 @@ namespace OLDD_camera.Camera
                 //yield return new WaitForSeconds(1f / 92f); //ddd
                 yield return new WaitForSeconds(0.0108695654f); //lll
             }
+
         }
 
         protected void UpdateWhiteNoise()

@@ -14,23 +14,28 @@ namespace OLDD_camera
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class DockCamToolbarButton : MonoBehaviour
     {
+        const float WINX = 132;
+        const float WINY = 179;
+        const float WINWIDTH = 306;
+        const float WINHEIGHT = 230;
+
         internal static DockCamToolbarButton instance;
-        private static PluginConfiguration _config;
+        //private static PluginConfiguration _config;
         private static List<Vessel> _vesselsWithCamera = new List<Vessel>();
         private static List<Vessel> _vesselsWithDockingCamera = new List<Vessel>();
         private static List<Vessel> _vesselsWithAttachedCamera = new List<Vessel>();
 
         private static Rect _lastWindowPosition;
-        private static Rect _windowPosition;
+        private static Rect _windowPosition = new Rect(WINX, WINY, WINWIDTH, WINHEIGHT);
         private static Rect helpWindowPosition;
         private static readonly VesselRanges DefaultRanges = PhysicsGlobals.Instance.VesselRangesDefault;
         //private readonly VesselRanges.Situation _myRanges = new VesselRanges.Situation(10000, 10000, 2500, 2500);
         private readonly VesselRanges.Situation _myRanges = new VesselRanges.Situation(10000, 12000, 3500, 2000);
         private const int WINDOW_WIDTH = 256;
         private static bool _showWindow;
-        private static bool _shadersToUse0 = true;
-        private static bool _shadersToUse1;
-        private static bool _shadersToUse2;
+        //private static bool _shadersToUse0 = true;
+        //private static bool _shadersToUse1;
+        //private static bool _shadersToUse2;
         //private static bool _dist2500 = true;
         //private static bool _dist9999;
         private bool mainWindowVisible;
@@ -52,7 +57,11 @@ namespace OLDD_camera
 
         public void Start()
         {
-            LoadWindowData();
+            //LoadWindowData();
+            if (WindowSettings.LoadSettings())
+            {
+                _windowPosition = WindowSettings.windowPosition;
+            }
             OnAppLauncherReady();
             if (!HighLogic.LoadedSceneIsFlight) return;
             GameEvents.onVesselCreate.Add(NewVesselCreated);
@@ -142,10 +151,7 @@ namespace OLDD_camera
             var vesselsCount = _vesselsWithCamera.Count;
             var height = 20 * vesselsCount;
             _windowPosition.height = 140 + height + 10 + 60;
-            //if (!HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings>().useKSPskin)
-            {
-                _windowPosition.width += 50;
-            }
+            _windowPosition.width += 50;
 
             _windowPosition = Util.ConstrainToScreen(ClickThruBlocker.GUIWindow(BaseCamera.SettingsWinID, _windowPosition, DrawOnWindowOLDD, "KURS Camera Info"), 100);
         }
@@ -245,7 +251,8 @@ I've really found this mod mod makes docking a whole lot easier. All you have to
             if (_windowPosition.x == _lastWindowPosition.x && _windowPosition.y == _lastWindowPosition.y) return;
             _lastWindowPosition.x = _windowPosition.x;
             _lastWindowPosition.y = _windowPosition.y;
-            SaveWindowData();
+            //SaveWindowData();
+            WindowSettings.SaveWinSettings(_windowPosition);
         }
 
         private void VesselsUndocked(Vessel d1, Vessel d2)
@@ -328,26 +335,31 @@ I've really found this mod mod makes docking a whole lot easier. All you have to
             return vesselsWithCamera;
         }
 
-        private static void SaveWindowData()
+
+#if false
+        internal static void SaveWindowData(int WindowSizeCoef = 1)
         {
             _config.SetValue("toolbarWindowPosition", _windowPosition);
-            _config.SetValue("shadersToUse0", _shadersToUse0);
-            _config.SetValue("shadersToUse1", _shadersToUse1);
-            _config.SetValue("shadersToUse2", _shadersToUse2);
+            //_config.SetValue("shadersToUse0", _shadersToUse0);
+            //_config.SetValue("shadersToUse1", _shadersToUse1);
+            //_config.SetValue("shadersToUse2", _shadersToUse2);
+
+            
             //_config.SetValue("FCS", FCS);
             _config.save();
         }
 
-        private static void LoadWindowData()
+        internal static void LoadWindowData()
         {
             _config = PluginConfiguration.CreateForType<DockCamToolbarButton>();
             _config.load();
             var defaultWindow = new Rect();
             _windowPosition = _config.GetValue("toolbarWindowPosition", defaultWindow);
-            _shadersToUse0 = _config.GetValue("shadersToUse0", _shadersToUse0);
-            _shadersToUse1 = _config.GetValue("shadersToUse1", _shadersToUse1);
-            _shadersToUse2 = _config.GetValue("shadersToUse2", _shadersToUse2);
+            //_shadersToUse0 = _config.GetValue("shadersToUse0", _shadersToUse0);
+            //_shadersToUse1 = _config.GetValue("shadersToUse1", _shadersToUse1);
+            //_shadersToUse2 = _config.GetValue("shadersToUse2", _shadersToUse2);
             //FCS = _config.GetValue("FCS", FCS);
         }
+#endif
     }
 }

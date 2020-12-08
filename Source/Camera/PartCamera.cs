@@ -154,6 +154,7 @@ namespace OLDD_camera.Camera
 
         public override void Activate()
         {
+            Log.Info("PartCamera.Activate");
             InitTextures();
             SetFreeId();
             WindowPosition.x = WindowPosition.width * (_id - 1);

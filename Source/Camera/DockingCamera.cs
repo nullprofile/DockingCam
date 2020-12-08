@@ -399,11 +399,17 @@ namespace OLDD_camera.Camera
 
         public override void Activate()
         {
+            Log.Info("DockingCamera.Activate");
             if (IsActive) return;
             SetFreeId();
 
-            WindowPosition.x = WindowPosition.width * (_id - 1);
-            WindowPosition.y = 400;
+            //
+            if (_id > 1)
+            {
+                WindowPosition.x = WindowPosition.width * (_id - 1);
+                WindowPosition.y = 400;
+            }
+            
             InitWindow();
             base.Activate();
         }

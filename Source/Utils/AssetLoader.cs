@@ -36,7 +36,7 @@ namespace OLDD_camera.Utils
             AssetBundle bundle = www.assetBundle;
             var shaderAssets = bundle.LoadAllAssets<Shader>();
             if (shaderAssets == null)
-                Log.Info("shaderAssets is null");
+                Log.Error("shaderAssets is null");
             //var materials = new List<Material>();
             materials = new List<Material>();
 #if DEBUG
