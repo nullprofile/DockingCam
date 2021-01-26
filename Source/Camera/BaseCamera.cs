@@ -132,12 +132,11 @@ namespace OLDD_camera.Camera
         private void FlightUIModeChanged(FlightUIMode mode)
         {
 
-#if KSP170
             if (ThisPart != null && ThisPart.vessel != null)
                 IsOrbital = ThisPart.vessel.situation == Vessel.Situations.ORBITING;
             else
                 IsOrbital = false;
-#else
+#if false // This was pre 1.7.0
 
             IsOrbital = mode == FlightUIMode.ORBITAL;
 #endif
