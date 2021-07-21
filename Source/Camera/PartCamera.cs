@@ -164,6 +164,7 @@ namespace OLDD_camera.Camera
 
         public override void Deactivate()
         {
+            Log.Info("PartCamera.Deactivate");
             base.Deactivate();
             if (_usedId != null) //lll
                 _usedId.Remove(_id);
@@ -171,7 +172,7 @@ namespace OLDD_camera.Camera
 
         private void SetFreeId()
         {
-            for (int i = 1; i < 8; i++)
+            for (int i = 1; i < 98; i++)
             {
                 if (_usedId.Contains(i)) continue;
                 _id = i;
@@ -184,7 +185,7 @@ namespace OLDD_camera.Camera
         #region DRAW LAYERS
         protected override void ExtendedDrawWindowL1()
         {
-            if (IsOrbital) return;
+            //if (IsOrbital) return;
 
             SetRotationStep();
             var widthOffset = WindowPosition.width - 90;

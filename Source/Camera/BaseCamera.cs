@@ -131,7 +131,6 @@ namespace OLDD_camera.Camera
 
         private void FlightUIModeChanged(FlightUIMode mode)
         {
-
             if (ThisPart != null && ThisPart.vessel != null)
                 IsOrbital = ThisPart.vessel.situation == Vessel.Situations.ORBITING;
             else
@@ -434,7 +433,6 @@ namespace OLDD_camera.Camera
             {
                 WindowSizeCoef = WindowSettings.WindowSizeCoef;
                 WindowPosition = WindowSettings.cameraWindowPosition;
-                Log.Info("LoadWinSettings, WindowPosition: " + WindowPosition);
             }
             DoResizeWindow(WindowSizeCoef);
         }

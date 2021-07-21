@@ -4,12 +4,17 @@
 set H=%KSPDIR%
 set GAMEDIR=DockingCamKURS
 
-echo %H%
+set GAMEDATA="GameData"
+set VERSIONFILE=%GAMEDIR%.version
 
-copy /Y "%1%2" "GameData\%GAMEDIR%\Plugins"
-copy /Y DockingCamera.version GameData\%GAMEDIR%
+set DP0=r:\dp0\kspdev
 
-mkdir "%H%\GameData\%GAMEDIR%"
-xcopy  /E /y GameData\%GAMEDIR% "%H%\GameData\%GAMEDIR%"
+copy /Y "%1%2" "%GAMEDATA%\%GAMEDIR%\Plugins"
+copy /Y "%1%3".pdb "%GAMEDATA%\%GAMEDIR%\Plugins"
 
+copy /Y %VERSIONFILE% %GAMEDATA%\%GAMEDIR%
 
+xcopy /y /s /I %GAMEDATA%\%GAMEDIR% "%H%\GameData\%GAMEDIR%"
+xcopy /y /s /I %GAMEDATA%\%GAMEDIR% "%DP0%\GameData\%GAMEDIR%"
+
+rem pause

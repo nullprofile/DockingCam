@@ -301,6 +301,12 @@ namespace OLDD_camera.Modules
         public void Activate()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
+            if (_camera == null)
+            {
+                Log.Info("_camera is null, reinitializing");
+                OnStart(StartState.Orbital);
+                _camera.IsActive = true;
+            }
             if (_camera.IsActive) return;
             _camera.Activate();
             StartCoroutine("CapRotator");
@@ -308,7 +314,7 @@ namespace OLDD_camera.Modules
         public void Deactivate()
         {
             if (!HighLogic.LoadedSceneIsFlight) return;
-            if (!_camera.IsActive) return;
+            if (_camera == null || !_camera.IsActive) return;
             _camera.Deactivate();
             if (!IsEnabled) StartCoroutine("CapRotator");
         }

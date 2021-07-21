@@ -3,7 +3,7 @@
 
 rem Set variables here
 
-set H=R:\KSP_1.6.1_dev
+set H=%KSPDIR%
 set GAMEDIR=DockingCamKURS
 set LICENSE=License.txt
 set README=ReadMe.md
