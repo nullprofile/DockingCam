@@ -2,6 +2,9 @@
 @echo off
 
 set H=%KSPDIR%
+
+set H=R:\KSP_1.12.3_IFI_US2
+
 set GAMEDIR=DockingCamKURS
 
 set GAMEDATA="GameData"

@@ -75,6 +75,10 @@ namespace OLDD_camera.Modules
         [KSPField(isPersistant = true)]
         private float _targetOffset = 100;
 
+        [KSPField]
+        public string photoDir = "DockingCam";
+
+
         [KSPAction("Toggle Camera")]
         public void ToggleCameraAction(KSPActionParam param)
         {
@@ -103,7 +107,6 @@ namespace OLDD_camera.Modules
             _camera.InitialCamLocalRotation = _camera.CurrentCamLocalRotation = _camObject.transform.localRotation;
             _camera.InitialCamLocalPosition = _camera.CurrentCamLocalPosition = _camObject.transform.localPosition;
             _camera.setECusageCost(electricchargeCost);
-            
         }
 
         public override string GetInfo()
@@ -308,6 +311,7 @@ namespace OLDD_camera.Modules
                 _camera.IsActive = true;
             }
             if (_camera.IsActive) return;
+            _camera.SetPhotoDir(photoDir);
             _camera.Activate();
             StartCoroutine("CapRotator");
         }
@@ -316,6 +320,7 @@ namespace OLDD_camera.Modules
             if (!HighLogic.LoadedSceneIsFlight) return;
             if (_camera == null || !_camera.IsActive) return;
             _camera.Deactivate();
+
             if (!IsEnabled) StartCoroutine("CapRotator");
         }
         private IEnumerator CapRotator()

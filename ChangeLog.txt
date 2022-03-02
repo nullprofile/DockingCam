@@ -149,3 +149,30 @@
 	Fixed OnboardCamera to work in orbit
 	Added Assemblyfileversion
 	Updated project info
+
+1.3.8.3
+
+	Added the CameraAdjuster.  It is available when you set the field :
+            devMode = true
+
+		in a ModuleCameraModule.  Add the following to the part you want to put the camera on, then select "Camera Adjuster" when right-clicking on the part.  It will show an arrow showing where the camera origin is and where it's pointing to.
+
+        MODULE
+        {
+            name = DockingCameraModule
+            devMode = true
+        }
+
+	Added following fields to the DockingCameraModule
+
+        public bool canTakePicture = false;				// Can this camera take a picture
+        public int cameraHorizontalResolution = 256;	// Horizontal res for picture taking
+        public int cameraVerticalResolution = 256;		// Vertical res for picture taking
+        public string deployAnimationName = null;		// If there is a deploy animation needed to be open before the camera is available
+        public bool openBeforePic = false;				// Does the deploy animation need to be open to take a picture
+        public bool openIsOne = true;					// relative to the deploy animation, indicates which way is open
+        public string cameraTransformName = "";		
+        public float cameraCustomNearClipPlane = 0f;	// Used for clipping the near camera.  
+        public bool isDockingNode = true;				// Is this a docking node
+		public bool photoDir = "DockingCamera";			// This specifies the name of the directory where any photos taken are saved, inside the Screenshots folder, in a top level directory with the name of the game save
+

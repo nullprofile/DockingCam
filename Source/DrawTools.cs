@@ -14,7 +14,7 @@ public static class DrawTools
     {
         get
         {
-            if (_material == null) _material = new Material(Shader.Find("Particles/Alpha Blended"));
+            if (_material == null) _material = new Material(Shader.Find("Legacy Shaders/Particles/Alpha Blended"));
             return _material;
         }
     }

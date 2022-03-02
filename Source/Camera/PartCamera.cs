@@ -207,7 +207,7 @@ namespace OLDD_camera.Camera
                 }
 
                 if (GUI.Button(new Rect(widthOffset, 186, 80, 25), "PHOTO"))
-                    RenderTexture.SavePng(ThisPart.vessel.vesselName);
+                    RenderTexture.SavePng(photoDir, ThisPart.vessel.vesselName);
             }
 
             if ((IsOnboard || IsLookAtMe) && (FlightGlobals.ActiveVessel == ThisPart.vessel))

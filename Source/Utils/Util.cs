@@ -95,20 +95,24 @@ namespace OLDD_camera.Utils
         /// This class converts time strings like "1d 2m 2s" into a double value as seconds and also vice versa, based on kerbin time.
         /// </summary>
 
-        public static void SavePng(this RenderTexture renderTexture, string photoFrom)
+        public static void SavePng(this RenderTexture renderTexture, string dir, string photoFrom)
         {
-            var time = Planetarium.fetch.time;
-            var photoTime = GetTimeMark(time);
             RenderTexture.active = renderTexture;
             if (Event.current.type.Equals(EventType.Repaint))
                 Graphics.Blit(renderTexture, BaseCamera.CurrentShader);
             var texture = new Texture2D(renderTexture.width, renderTexture.height, TextureFormat.RGB24, false);
             texture.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+            WritePng(texture, dir, photoFrom);
+        }
+        public static void WritePng(Texture2D texture, string dir, string photoFrom)
+        { 
+            var time = Planetarium.fetch.time;
+            var photoTime = GetTimeMark(time);
             var bytes = texture.EncodeToPNG();
             var name = string.Concat("Photo from ", photoFrom, " at UT ", photoTime, ".png");
-            var folder = Path.Combine(PhotoDirectory, HighLogic.SaveFolder);
+            var folder = Path.Combine(PhotoDirectory, HighLogic.SaveFolder, dir);
             Directory.CreateDirectory(folder);
-            name = Path.Combine(folder, name);
+            name = Path.Combine(folder,  name);
             File.WriteAllBytes(name, bytes);
             ScreenMessages.PostScreenMessage("PHOTO HAS BEEN SAVED TO YOUR SCREENSHOTS FOLDER", 3f, ScreenMessageStyle.UPPER_CENTER);
         }

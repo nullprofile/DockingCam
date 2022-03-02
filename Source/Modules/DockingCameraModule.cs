@@ -1,12 +1,12 @@
 ﻿using System.Collections;
 using OLDD_camera.Camera;
-using OLDD_camera.Utils;
 using UnityEngine;
-using UnityEngine.UI;
+
+using System.Linq;
 
 namespace OLDD_camera.Modules
 {
-    public  class DockingCameraModule : PartModule //, ICamPart
+    public class DockingCameraModule : PartModule //, ICamPart
     {
 
         /// <summary>
@@ -21,7 +21,7 @@ namespace OLDD_camera.Modules
 
         [KSPField(isPersistant = true)]
         public double electricchargeCost = 0.02d;
-        
+
         [KSPField(isPersistant = true)]
         private bool _crossDPAI;
 
@@ -58,7 +58,7 @@ namespace OLDD_camera.Modules
         [KSPField]
         public string restrictShaderTo = "";     // a comma delimiated list of shader names, the part after the slash
 
-        [KSPField( isPersistant = true )]
+        [KSPField(isPersistant = true)]
         public Vector3 cameraPosition = Vector3.zero;
 
         [KSPField(isPersistant = true)]
@@ -70,8 +70,46 @@ namespace OLDD_camera.Modules
         [KSPField(isPersistant = true)]
         public bool transformModification = true;
 
+
         [KSPField]
         public bool devMode = false;
+
+
+        //////////////////////////////////////////////////////////////////////////////
+
+        [KSPField]
+        public bool canTakePicture = false;				// Can this camera take a picture
+
+        [KSPField(isPersistant = false)]
+        public int cameraHorizontalResolution = 256;	// Horizontal res for picture taking
+
+        [KSPField(isPersistant = false)]
+        public int cameraVerticalResolution = 256;		// Vertical res for picture taking
+
+        [KSPField]
+        public string deployAnimationName = null;       // If there is a deploy animation needed to be open before the camera is available
+
+        [KSPField]
+        public bool openBeforePic = false;				// Does the deploy animation need to be open to take a picture
+
+        [KSPField]
+        public bool openIsOne = true;					// relative to the deploy animation, indicates which way is open
+
+        [KSPField(isPersistant = false)]
+        public string cameraTransformName = "";
+
+        [KSPField]
+        public float cameraCustomNearClipPlane = 0f;	// Used for clipping the near camera.  
+
+        [KSPField]
+        public bool isDockingNode = true;				// Is this a docking node
+
+        [KSPField]
+        public string photoDir = "DockingCam";
+
+        //////////////////////////////////////////////////////////////////////////////
+
+
 
         [KSPAction("Toggle Docking Camera")]
         public void EnableAction(KSPActionParam param)
@@ -91,7 +129,7 @@ namespace OLDD_camera.Modules
                 ca = this.gameObject.AddComponent<CameraAdjust.CameraAdjuster>();
             }
             ca.SetDcm(this);
-            
+
             ca.active = !ca.active;
             if (!ca.active)
             {
@@ -106,16 +144,17 @@ namespace OLDD_camera.Modules
         public override void OnStart(StartState state)
         {
             if (state == StartState.Editor || _camera != null) return;
- 
-            if (_camera == null)
+
+            //if (_camera == null)
             {
-                if(cameraName != "")
-                    _camera = new DockingCamera(this, part, 
+                if (cameraName != "")
+                    _camera = new DockingCamera(this, part,
                         noise, electricchargeCost, targetCrossStockOnAtStartup, crossDPAIonAtStartup, crossOLDDonAtStartup, transformModification,
                         _windowSize, restrictShaderTo,
-                        windowLabel, cameraName, slidingOptionWindow, allowZoom);
+                        windowLabel, cameraName, slidingOptionWindow, allowZoom,
+                        cameraTransformName);
                 else
-                    _camera = new DockingCamera(this, part, 
+                    _camera = new DockingCamera(this, part,
                         noise, electricchargeCost, targetCrossStockOnAtStartup, crossDPAIonAtStartup, crossOLDDonAtStartup, transformModification,
                         _windowSize, restrictShaderTo);
             }
@@ -131,6 +170,53 @@ namespace OLDD_camera.Modules
             _camera.setECusageCost(electricchargeCost);
         }
 
+        Animation deployAnim = null;
+        public void Start()
+        {
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                //_camera.DoStart();
+                if (deployAnimationName != null)
+                {
+                    deployAnim = part.FindModelAnimators(deployAnimationName).FirstOrDefault();
+
+                    if (deployAnim != null)
+                        InvokeRepeating("CheckIfAvailable", 0, 1f);
+                }
+            }
+        }
+
+        void OnDestroy()
+        {
+            if (_camera != null)
+                _camera.DoOnDestroy();
+        }
+        void CheckIfAvailable()
+        {
+            //Log.Info("CheckIfAvailable, deployAnimationName: " + deployAnimationName + ", openBeforePic: " + openBeforePic +
+            //    ", openIsOne: " + openIsOne + ", time: " + deployAnim[deployAnimationName].time +
+            //    ", length: " + deployAnim[deployAnimationName].length + ", normalizedSpeed: " + deployAnim[deployAnimationName].normalizedSpeed);
+            if (openBeforePic)
+            {
+                if (openIsOne)
+                {
+                    if (deployAnim[deployAnimationName].normalizedSpeed <= 0)
+                        Fields["IsEnabled"].guiActive = false;
+                    else
+                        Fields["IsEnabled"].guiActive = true;
+                }
+                else
+                {
+                    if (deployAnim[deployAnimationName].normalizedSpeed > 0)
+                        Fields["IsEnabled"].guiActive = true;
+                    else
+                        Fields["IsEnabled"].guiActive = false;
+
+                }
+            }
+        }
+
+
         public override void OnUpdate()
         {
             if (_camera == null) return;
@@ -140,14 +226,14 @@ namespace OLDD_camera.Modules
                 var dist = Vector3.Distance(FlightGlobals.ActiveVessel.transform.position, part.vessel.transform.position);
                 var treshhold = vessel.vesselRanges.orbit.load;
                 if (dist > treshhold * 0.99)
-                    _camera.IsButtonOff = true; 
+                    _camera.IsButtonOff = true;
             }
 
             if (_camera.IsButtonOff)
             {
                 IsEnabled = false;
                 _camera.IsButtonOff = false;
-    
+
             }
 
             if (IsEnabled)
@@ -169,9 +255,9 @@ namespace OLDD_camera.Modules
         public void Activate()
         {
             if (_camera.IsActive) return;
-            
+
             _camera.Activate();
-            StartCoroutine("WhiteNoise"); 
+            StartCoroutine("WhiteNoise");
         }
 
         public void Deactivate()
@@ -181,7 +267,7 @@ namespace OLDD_camera.Modules
             _camera.Deactivate();
         }
 
-        private IEnumerator WhiteNoise() 
+        private IEnumerator WhiteNoise()
         {
             while (_camera.IsActive)
             {

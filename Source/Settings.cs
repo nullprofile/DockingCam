@@ -71,10 +71,6 @@ namespace OLDD_camera
             toolTip = "Only used when using dev mode to adjust a camera's position")]
         public bool useCamObj = true;
 
-        [GameParameters.CustomParameterUI("Use node object for adjustments",
-            toolTip = "Only used when using dev mode to adjust a camera's position")]
-        public bool useNodeObj = false;
-
 
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {        }
@@ -83,32 +79,10 @@ namespace OLDD_camera
         bool oDist9999;
         bool distInitted = false;
 
-
-        bool oldUseCamObj, oldUseNodeObj;
-
         public override bool Enabled(MemberInfo member, GameParameters parameters)
         {
-
-            if (oldUseCamObj == false && oldUseNodeObj == false)
-            {
-                oldUseCamObj = useCamObj;
-                oldUseNodeObj = useNodeObj;
-            }
-            // The following is used to ensure that one and exactly one of the two
-            // options are set
-
-            if (useCamObj && !oldUseCamObj)
-                useNodeObj = false;
-
-            if (useNodeObj && !oldUseNodeObj)
-                useCamObj = false;
-
-            oldUseCamObj = useCamObj;
-            oldUseNodeObj = useNodeObj;
             if (distInitted)
             {
-
-
                 if (oDist2500 != _dist2500)
                 {
                     _dist9999 = !_dist2500;

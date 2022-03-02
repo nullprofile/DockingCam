@@ -78,6 +78,19 @@ namespace OLDD_camera.Camera
 
         internal ShaderInfo availableShaders = null;
 
+        Modules.DockingCameraModule dcm;
+        public string photoDir = "DockingCam";
+
+        public void SetDCM(Modules.DockingCameraModule dcm)
+        {
+            this.dcm = dcm;
+        }
+
+        public void SetPhotoDir(string dir)
+        {
+            Log.Info("SetPhotoDir: " + dir);
+            photoDir = dir;
+        }
         protected BaseCamera(Part thisPart, float windowSizeInit, string windowLabel = "Camera")
         {
             InitBaseCamera(thisPart, windowSizeInit, windowLabel);
@@ -199,6 +212,8 @@ namespace OLDD_camera.Camera
                         camera.CopyFrom(cameraExample);
                         camera.name = string.Format("{1} copy of {0}", CameraNames[i], WindowCount);
                         camera.targetTexture = RenderTexture;
+                        if (i == 2 && dcm != null &&  dcm.cameraCustomNearClipPlane > 0)
+                            camera.nearClipPlane = dcm.cameraCustomNearClipPlane;
                     }
                     return camera;
                 }).ToList();
@@ -209,6 +224,7 @@ namespace OLDD_camera.Camera
             AllCameras.ForEach(UnityEngine.Object.Destroy);
             AllCameras.Clear();
         }
+
 
         /// <summary>
         /// Create and activate cameras
@@ -275,6 +291,70 @@ namespace OLDD_camera.Camera
             WindowSettings.SaveCameraWinSettings(WindowPosition);
         }
 
+
+
+        internal bool takePic = false;
+
+        RenderTexture _renderTextureColor;
+        RenderTexture _renderTextureDepth;
+
+        public Texture2D GetPic()
+        {
+            RenderTexture CurrentRT = RenderTexture.active;
+
+            Texture2D imageTexture = new Texture2D(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution, TextureFormat.RGB24, false);
+
+            if (_renderTextureColor == null)
+            {
+                _renderTextureColor = new RenderTexture(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution, 0);
+                _renderTextureDepth = new RenderTexture(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution, 24);
+                _renderTextureColor.Create();
+                _renderTextureDepth.Create();
+            }
+            RenderTexture.active = _renderTextureColor;
+
+
+            foreach (var a in AllCameras)
+            {
+                a.SetTargetBuffers(_renderTextureColor.colorBuffer, _renderTextureDepth.depthBuffer);
+                a.Render();
+            }
+
+           imageTexture.ReadPixels(new Rect(0, 0, dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution), 0, 0);
+            imageTexture.Apply();
+
+            _renderTextureColor.Release();
+            _renderTextureDepth.Release();
+            _renderTextureColor = null;
+            _renderTextureDepth = null;
+
+            foreach (var a in AllCameras)
+                a.targetTexture = RenderTexture;
+
+            RenderTexture.active = CurrentRT;
+
+
+            return imageTexture;
+        }
+
+        /* ************************************************************************************************
+         * Function Name: WriteTextureToDrive
+         * Input: The texture object that will be written to the hard drive.
+         * Output: None
+         * Purpose: This function will take an input texture and then convert it to a png file in the 
+         * DockingCam subfolder of the Screenshot folder.
+         * This currently has some bugs.
+         * If Linux users complain about screenshots not saving to the disk, then this is the first place
+         * to look.
+         * ************************************************************************************************/
+        private void WriteTextureToDrive(Texture2D Input)
+        {
+            Util.WritePng(Input, photoDir,  ThisPart.vessel.vesselName);
+        }
+
+
+
+
         /// <summary>
         /// drawing method, first layer, for cameras
         /// </summary>
@@ -292,7 +372,7 @@ namespace OLDD_camera.Camera
             {
                 GUI.Label(new Rect(widthOffset, 22, 80, 20), "Zoom: " + CalculatedZoom, Styles.Label13B);
 
-                if (FlightGlobals.ActiveVessel == ThisPart.vessel)
+                if (dcm != null && dcm.isDockingNode && FlightGlobals.ActiveVessel == ThisPart.vessel)
                     _isTargetPoint = GUI.Toggle(new Rect(widthOffset - 2, 233, 88, 20), _isTargetPoint, "Target Mark");
             }
             //GUI.DrawTexture(TexturePosition, _textureBackGroundCamera);
@@ -302,7 +382,19 @@ namespace OLDD_camera.Camera
             _currentShaderName = CurrentShader == null ? "none" : CurrentShader.name;
 
             if (Event.current.type.Equals(EventType.Repaint))
+            {
                 Graphics.DrawTexture(TexturePosition, Render(), CurrentShader);
+                if (takePic)
+                {
+                    //RenderTexture.SavePng(ThisPart.vessel.vesselName);
+                    //takePic = false;
+                    //return;
+                    WriteTextureToDrive(GetPic());
+
+                    takePic = false;
+                }
+            }
+
         }
 
         /// <summary>
@@ -436,7 +528,7 @@ namespace OLDD_camera.Camera
             }
             DoResizeWindow(WindowSizeCoef);
         }
-        #endregion DRAW LAYERS
+#endregion DRAW LAYERS
 
         private float GetX(float x, float z)
         {

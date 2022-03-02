@@ -35,17 +35,9 @@ namespace OLDD_camera.CameraAdjust
         void CreateCameraObject()
         {
             // Try to create a game object using our marker mesh
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().useNodeObj)
-            {
-                cameraMarker = Instantiate(GameDatabase.Instance.GetModel("DockingCamKURS/Assets/PWBComMarker/PWBTargetComMarker"));
+            cameraMarker = Instantiate(GameDatabase.Instance.GetModel("DockingCamKURS/Assets/PWBComMarker/PWBTargetComMarker"));
                 // Make it a bit smaller - we need to fix the model for this
                 cameraMarker.transform.localScale = Vector3.one / 5f;
-            }
-            else
-            {
-                cameraMarker = Instantiate(GameDatabase.Instance.GetModel("DockingCamKURS/Assets/hullcam_hubbazoot/model2"));
-                cameraMarker.transform.localScale = Vector3.one * 2f;
-            }
             Collider m_Collider = cameraMarker.GetComponent<Collider>();
             if (m_Collider != null)
                 m_Collider.enabled = false;
@@ -53,9 +45,6 @@ namespace OLDD_camera.CameraAdjust
 
         private void CreateSavedCameraMarker()
         {
-            if (cameraMarker == null)
-                Utils.Log.Error("cameraMarker is null");
-
             // Do not try to create the marker if it already exisits
             if (null != cameraMarker) return;
             // First try to find the camera that will be used to display the marker - it needs a special camera to make it "float"
@@ -67,8 +56,6 @@ namespace OLDD_camera.CameraAdjust
             if (null == markerCam) return;
             CreateCameraObject();
 
-
-            // Add a behaviour to it to allow us to control it and link it to the part that is marks the saved CoM position for
             cameraMarker.AddComponent<CameraMarker>();
             // Tell the marker which instance of the PWBFueldBalancingModule it is displaying the set CoM location for (we could have more than one per vessel)
             cameraMarker.GetComponent<CameraMarker>().LinkPart(dcm);

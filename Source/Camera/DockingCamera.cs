@@ -28,7 +28,7 @@ namespace OLDD_camera.Camera
         private Texture2D _VLineCurrentVelocityBack;
         private Texture2D _HLineCurrentVelocityBack;
 
-        internal readonly GameObject _moduleDockingNodeGameObject;
+        internal /* readonly */ GameObject _moduleDockingNodeGameObject;
         private TargetHelper _target;
 
         internal bool Noise;
@@ -49,12 +49,13 @@ namespace OLDD_camera.Camera
         private string _lastVesselName;
         private string _windowLabelSuffix;
 
-        Modules.DockingCameraModule _dcm;
-        
+        //dules.DockingCameraModule _dcm;
+
+        Modules.DockingCameraModule dcm;
 
         public void UpdateLocalPosition(Modules.DockingCameraModule dcm)
         {
-            _dcm = dcm;
+            //dcm = dcm;
 
             TargetCrossDPAI = dcm.crossDPAIonAtStartup;
             TargetCrossOLDD = dcm.crossOLDDonAtStartup;
@@ -67,8 +68,9 @@ namespace OLDD_camera.Camera
         public DockingCamera(OLDD_camera.Modules.DockingCameraModule dcm, Part thisPart,
             bool noise, double electricchargeCost, bool crossStock, bool crossDPAI, bool crossOLDD, bool transformModification,
             int windowSize, string restrictShaderTo,
-            string windowLabel = "DockCam", string cameraName = "dockingNode", 
-            bool slidingOptionWindow = false, bool allowZoom = false, bool noTransformMod = false)
+            string windowLabel = "DockCam", string cameraName = "dockingNode",
+            bool slidingOptionWindow = false, bool allowZoom = false,
+            string cameraTransformName = "")
             : base(thisPart, windowSize, windowLabel)
         {
             GameEvents.onGameSceneLoadRequested.Add(LevelWasLoaded);
@@ -81,7 +83,21 @@ namespace OLDD_camera.Camera
 
             availableShaders = new ShaderInfo(restrictShaderTo);
             _target = new TargetHelper(thisPart);
-            _moduleDockingNodeGameObject = PartGameObject.GetChild(cameraName) ?? PartGameObject;  //GET orientation from dockingnode
+            this.dcm = dcm;
+
+            if (cameraName != "dockingNode")
+            {
+                Log.Info("DockingCamera, cameraName: " + cameraName + ", cameraTransformName: " + cameraTransformName + ", transformModification: " + transformModification);
+                _moduleDockingNodeGameObject = PartGameObject.GetChild(cameraTransformName) ?? PartGameObject;  //GET orientation from dockingnode
+                GameObject go = GameObject.Instantiate(_moduleDockingNodeGameObject);
+                go.transform.position = _moduleDockingNodeGameObject.transform.position;
+                go.transform.rotation = _moduleDockingNodeGameObject.transform.rotation;
+                go.transform.parent = _moduleDockingNodeGameObject.transform.parent;
+                go.SetActive(false);
+                _moduleDockingNodeGameObject = go;
+            }
+            else
+                _moduleDockingNodeGameObject = PartGameObject.GetChild(cameraName) ?? PartGameObject;  //GET orientation from dockingnode
 
             if (cameraName != "dockingNode" && transformModification)
             {
@@ -104,9 +120,56 @@ namespace OLDD_camera.Camera
             }
         }
 
+#if true
+        public void UpdatePositionAndRotation(OLDD_camera.Modules.DockingCameraModule dcm)
+        {
+
+                Log.Info("DockingCamera, cameraName: " + dcm.cameraName + ", cameraTransformName: " + dcm.cameraTransformName + ", transformModification: " + dcm.transformModification);
+                UnityEngine.Object.Destroy(_moduleDockingNodeGameObject);
+                _moduleDockingNodeGameObject = PartGameObject.GetChild(dcm.cameraTransformName) ?? PartGameObject;  //GET orientation from dockingnode
+                GameObject go = GameObject.Instantiate(_moduleDockingNodeGameObject);
+                go.transform.position = _moduleDockingNodeGameObject.transform.position;
+                go.transform.rotation = _moduleDockingNodeGameObject.transform.rotation;
+                go.transform.parent = _moduleDockingNodeGameObject.transform.parent;
+                go.SetActive(false);
+                _moduleDockingNodeGameObject = go;
+
+            if (dcm.cameraName != "dockingNode" && dcm.transformModification)
+            {
+                Vector3 v3 = dcm.cameraPosition;
+
+                _moduleDockingNodeGameObject.transform.position += _moduleDockingNodeGameObject.transform.rotation * v3;
+                _moduleDockingNodeGameObject.transform.rotation = dcm.part.transform.rotation;
+                _moduleDockingNodeGameObject.transform.rotation *= Quaternion.LookRotation(dcm.cameraForward, dcm.cameraUp);
+            }
+        }
+#endif
+
+ #if false
+       public void DoStart()
+        {
+            if (dcm.cameraName != "dockingNode" && dcm.transformModification)
+            {
+                Vector3 v3 = dcm.cameraPosition;
+
+                //_moduleDockingNodeGameObject.transform.position += _moduleDockingNodeGameObject.transform.rotation * v3;
+                _moduleDockingNodeGameObject.transform.localPosition += dcm.cameraPosition;
+                _moduleDockingNodeGameObject.transform.rotation = dcm.part.transform.rotation;
+                _moduleDockingNodeGameObject.transform.rotation *= Quaternion.LookRotation(dcm.cameraForward, dcm.cameraUp);
+            }
+        }
+#endif
+
+
         private void LevelWasLoaded(GameScenes data)
         {
             _usedId = new HashSet<int>();
+        }
+
+
+        internal void DoOnDestroy()
+        {
+            UnityEngine.Object.Destroy(_moduleDockingNodeGameObject);
         }
 
         ~DockingCamera()
@@ -140,29 +203,39 @@ namespace OLDD_camera.Camera
             }
             if (IsAuxiliaryWindowOpen)
             {
-                TargetCrossStock = GUI.Toggle(new Rect(widthOffset, 124, 88, 20), TargetCrossStock, "Cross: stock");
-                //if (TargetCrossStock)
-                //    TargetCrossDPAI = TargetCrossOLDD = false;
-                if (ThisPart.vessel.Equals(FlightGlobals.ActiveVessel) && TargetHelper.IsTargetSelect)
+                if (dcm.isDockingNode)
                 {
-
-                    if (_target != null && _target.IsDockPort)
+                    TargetCrossStock = GUI.Toggle(new Rect(widthOffset, 124, 88, 20), TargetCrossStock, "Cross: stock");
+                    //if (TargetCrossStock)
+                    //    TargetCrossDPAI = TargetCrossOLDD = false;
+                    if (ThisPart.vessel.Equals(FlightGlobals.ActiveVessel) && TargetHelper.IsTargetSelect)
                     {
-                        TargetCrossDPAI = GUI.Toggle(new Rect(widthOffset, 64, 88, 20), TargetCrossDPAI, "Cross: DPAI");
-                        //if (TargetCrossDPAI)
-                        //    TargetCrossStock = TargetCrossOLDD = false;
 
-                        TargetCrossOLDD = GUI.Toggle(new Rect(widthOffset, 84, 88, 20), TargetCrossOLDD, "Cross: KURS");
-                        //if (TargetCrossOLDD)
-                        //    TargetCrossStock = TargetCrossDPAI = false;
+                        if (_target != null && _target.IsDockPort)
+                        {
+                            TargetCrossDPAI = GUI.Toggle(new Rect(widthOffset, 64, 88, 20), TargetCrossDPAI, "Cross: DPAI");
+                            //if (TargetCrossDPAI)
+                            //    TargetCrossStock = TargetCrossOLDD = false;
 
-                        _cameraData = GUI.Toggle(new Rect(widthOffset, 144, 88, 20), _cameraData, "Flight data");
-                        _rotatorState = GUI.Toggle(new Rect(widthOffset, 164, 88, 20), _rotatorState, "Rotator");
+                            TargetCrossOLDD = GUI.Toggle(new Rect(widthOffset, 84, 88, 20), TargetCrossOLDD, "Cross: KURS");
+                            //if (TargetCrossOLDD)
+                            //    TargetCrossStock = TargetCrossDPAI = false;
+
+                            _cameraData = GUI.Toggle(new Rect(widthOffset, 144, 88, 20), _cameraData, "Flight data");
+                            _rotatorState = GUI.Toggle(new Rect(widthOffset, 164, 88, 20), _rotatorState, "Rotator");
+                        }
+                        else
+                            GUI.Label(new Rect(widthOffset, 174, 88, 60), " Select\n docking\n port", Styles.RedLabel13B);
                     }
-                    else
-                        GUI.Label(new Rect(widthOffset, 174, 88, 60), " Select\n docking\n port", Styles.RedLabel13B);
+                    Noise = GUI.Toggle(new Rect(widthOffset, 253, 88, 20), Noise, "Noise");
                 }
-                Noise = GUI.Toggle(new Rect(widthOffset, 253, 88, 20), Noise, "Noise");
+                if (dcm != null && dcm.canTakePicture)
+                {
+                    if (GUI.Button(new Rect(widthOffset, 84, 88, 20), "PHOTO"))
+                    {
+                        base.takePic = true;
+                    }
+                }
             }
             base.ExtendedDrawWindowL1();
         }
@@ -181,51 +254,56 @@ namespace OLDD_camera.Camera
 
         protected override void ExtendedDrawWindowL3()
         {
-            //targetted lamp & seconds Block
-            if (_target.IsMoveToTarget)
+            if (dcm.isDockingNode)
             {
-                GUI.DrawTexture(new Rect(TexturePosition.xMin + 20, TexturePosition.yMax - 20, 20, 20), AssetLoader.texLampOn);
-                GUI.Label(new Rect(TexturePosition.xMin + 40, TexturePosition.yMax - 20, 140, 20), $"Time to dock:{_target.SecondsToDock:f0}s");
-            }
-            else
-                GUI.DrawTexture(new Rect(TexturePosition.xMin + 20, TexturePosition.yMax - 20, 20, 20), AssetLoader.texLampOff);
-
-            GetWindowLabel();
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showData ||
-                HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showSummaryData)
-                GetFlightData();
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showCross)
-                GetCross();
-            if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showDials)
-            {
-                if (_rotatorState && ThisPart.vessel.Equals(FlightGlobals.ActiveVessel) && TargetHelper.IsTargetSelect)
+                //targetted lamp & seconds Block
+                if (_target.IsMoveToTarget)
                 {
-                    var size1 = TexturePosition.width / 7;
-                    var x1 = TexturePosition.xMin + TexturePosition.width / 2 - size1 / 2;
-                    var rect1 = new Rect(x1, TexturePosition.yMax - size1, size1, size1);
-                    GUI.DrawTexture(rect1, AssetLoader.texTargetRot);
-                    Matrix4x4 matrixBackup1 = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(_target.AngleZ, rect1.center);
-                    GUI.DrawTexture(new Rect(x1, TexturePosition.yMax - size1, size1, size1), AssetLoader.texSelfRot);
-                    GUI.matrix = matrixBackup1;
+                    GUI.DrawTexture(new Rect(TexturePosition.xMin + 20, TexturePosition.yMax - 20, 20, 20), AssetLoader.texLampOn);
+                    GUI.Label(new Rect(TexturePosition.xMin + 40, TexturePosition.yMax - 20, 140, 20), $"Time to dock:{_target.SecondsToDock:f0}s");
+                }
+                else
+                    GUI.DrawTexture(new Rect(TexturePosition.xMin + 20, TexturePosition.yMax - 20, 20, 20), AssetLoader.texLampOff);
+            }
+            GetWindowLabel();
+            if (dcm.isDockingNode)
+            {
+                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showData ||
+                HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showSummaryData)
+                    GetFlightData();
+                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showCross)
+                    GetCross();
+                if (HighLogic.CurrentGame.Parameters.CustomParams<KURSSettings_1>().showDials)
+                {
+                    if (_rotatorState && ThisPart.vessel.Equals(FlightGlobals.ActiveVessel) && TargetHelper.IsTargetSelect)
+                    {
+                        var size1 = TexturePosition.width / 7;
+                        var x1 = TexturePosition.xMin + TexturePosition.width / 2 - size1 / 2;
+                        var rect1 = new Rect(x1, TexturePosition.yMax - size1, size1, size1);
+                        GUI.DrawTexture(rect1, AssetLoader.texTargetRot);
+                        Matrix4x4 matrixBackup1 = GUI.matrix;
+                        GUIUtility.RotateAroundPivot(_target.AngleZ, rect1.center);
+                        GUI.DrawTexture(new Rect(x1, TexturePosition.yMax - size1, size1, size1), AssetLoader.texSelfRot);
+                        GUI.matrix = matrixBackup1;
 
-                    var size2 = TexturePosition.width / 8;
-                    var x2 = TexturePosition.xMin + TexturePosition.width / 2 - size2 / 2 - size1;
-                    var rect2 = new Rect(x2, TexturePosition.yMax - size2, size2, size2);
-                    GUI.DrawTexture(rect2, AssetLoader.texTargetRot);
-                    Matrix4x4 matrixBackup2 = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(_target.AngleX, rect2.center);
-                    GUI.DrawTexture(new Rect(x2, TexturePosition.yMax - size2, size2, size2), AssetLoader.texSelfRot);
-                    GUI.matrix = matrixBackup2;
+                        var size2 = TexturePosition.width / 8;
+                        var x2 = TexturePosition.xMin + TexturePosition.width / 2 - size2 / 2 - size1;
+                        var rect2 = new Rect(x2, TexturePosition.yMax - size2, size2, size2);
+                        GUI.DrawTexture(rect2, AssetLoader.texTargetRot);
+                        Matrix4x4 matrixBackup2 = GUI.matrix;
+                        GUIUtility.RotateAroundPivot(_target.AngleX, rect2.center);
+                        GUI.DrawTexture(new Rect(x2, TexturePosition.yMax - size2, size2, size2), AssetLoader.texSelfRot);
+                        GUI.matrix = matrixBackup2;
 
-                    var size3 = TexturePosition.width / 8;
-                    var x3 = TexturePosition.xMin + TexturePosition.width / 2 - size3 / 2 + size1;
-                    var rect3 = new Rect(x3, TexturePosition.yMax - size3, size3, size3);
-                    GUI.DrawTexture(rect3, AssetLoader.texTargetRot);
-                    Matrix4x4 matrixBackup3 = GUI.matrix;
-                    GUIUtility.RotateAroundPivot(_target.AngleY, rect3.center);
-                    GUI.DrawTexture(new Rect(x3, TexturePosition.yMax - size3, size3, size3), AssetLoader.texSelfRot);
-                    GUI.matrix = matrixBackup3;
+                        var size3 = TexturePosition.width / 8;
+                        var x3 = TexturePosition.xMin + TexturePosition.width / 2 - size3 / 2 + size1;
+                        var rect3 = new Rect(x3, TexturePosition.yMax - size3, size3, size3);
+                        GUI.DrawTexture(rect3, AssetLoader.texTargetRot);
+                        Matrix4x4 matrixBackup3 = GUI.matrix;
+                        GUIUtility.RotateAroundPivot(_target.AngleY, rect3.center);
+                        GUI.DrawTexture(new Rect(x3, TexturePosition.yMax - size3, size3, size3), AssetLoader.texSelfRot);
+                        GUI.matrix = matrixBackup3;
+                    }
                 }
             }
             base.ExtendedDrawWindowL3();
@@ -235,7 +313,7 @@ namespace OLDD_camera.Camera
         {
             if (ThisPart.vessel.Equals(FlightGlobals.ActiveVessel))
             {
-                if (TargetHelper.IsTargetSelect) // && thisPart.vessel.Equals(FlightGlobals.ActiveVessel))
+                if (dcm.isDockingNode && TargetHelper.IsTargetSelect) // && thisPart.vessel.Equals(FlightGlobals.ActiveVessel))
                 {
                     _lastVesselName = TargetHelper.Target.GetName();
                     _windowLabelSuffix = " to " + _lastVesselName;
@@ -409,8 +487,10 @@ namespace OLDD_camera.Camera
                 WindowPosition.x = WindowPosition.width * (_id - 1);
                 WindowPosition.y = 400;
             }
-            
+
             InitWindow();
+            base.SetDCM(dcm);
+            base.SetPhotoDir(dcm.photoDir);
             base.Activate();
         }
 
@@ -456,7 +536,7 @@ namespace OLDD_camera.Camera
             sCam.transform.parent = AllCamerasGameObject.Last().transform;
             //sCam.transform.localPosition = _dcm.cameraPosition;
             //sCam.transform.localRotation = Quaternion.LookRotation(_dcm.cameraForward, _dcm.cameraUp);
-            
+
 
             AllCamerasGameObject[0].transform.rotation = AllCamerasGameObject.Last().transform.rotation; // skybox galaxy
             AllCamerasGameObject[1].transform.rotation = AllCamerasGameObject.Last().transform.rotation; // nature object

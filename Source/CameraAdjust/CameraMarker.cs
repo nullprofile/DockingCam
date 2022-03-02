@@ -23,12 +23,11 @@ namespace OLDD_camera.CameraAdjust
             transform.position = _dcm._camera._moduleDockingNodeGameObject.transform.position;
 
             transform.rotation = _dcm.part.transform.rotation * Quaternion.LookRotation(_dcm.cameraForward, _dcm.cameraUp);
-            transform.position += _dcm._camera._moduleDockingNodeGameObject.transform.rotation * v3;
-
-            _dcm._camera._moduleDockingNodeGameObject.transform.position = transform.position;
-            _dcm._camera._moduleDockingNodeGameObject.transform.rotation = transform.rotation;
 
             DrawTools.DrawArrow(transform.position, transform.forward﻿, Color.red);
+
+            _dcm._camera.UpdatePositionAndRotation(_dcm);
         }
     }
 }
+
