@@ -199,6 +199,12 @@ namespace OLDD_camera.Modules
                 _camera.Update();
         }
 
+        public byte[] GetPic()
+        {
+            var texture = _camera.GetPic();
+            return texture.EncodeToPNG();
+        }
+
         private void SetCurrentMode(bool a, bool b, bool c, bool d)
         {
             _camera.IsOnboardEnabled = a;

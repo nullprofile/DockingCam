@@ -105,14 +105,14 @@ namespace OLDD_camera.Utils
             WritePng(texture, dir, photoFrom);
         }
         public static void WritePng(Texture2D texture, string dir, string photoFrom)
-        { 
+        {
             var time = Planetarium.fetch.time;
             var photoTime = GetTimeMark(time);
             var bytes = texture.EncodeToPNG();
             var name = string.Concat("Photo from ", photoFrom, " at UT ", photoTime, ".png");
             var folder = Path.Combine(PhotoDirectory, HighLogic.SaveFolder, dir);
             Directory.CreateDirectory(folder);
-            name = Path.Combine(folder,  name);
+            name = Path.Combine(folder, name);
             File.WriteAllBytes(name, bytes);
             ScreenMessages.PostScreenMessage("PHOTO HAS BEEN SAVED TO YOUR SCREENSHOTS FOLDER", 3f, ScreenMessageStyle.UPPER_CENTER);
         }

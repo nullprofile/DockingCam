@@ -564,7 +564,7 @@ namespace OLDD_camera.Camera
         {
             Object.Destroy(_visibilityRay);
             if (!_isVisibilityRay) return;
-            if (!TargetHelper.IsTargetSelect || !IsTargetVisiable()) return;
+            if (!TargetHelper.IsTargetSelect || !IsTargetVisible()) return;
             _visibilityRay = new GameObject("visibilityRay").AddComponent<LineRenderer>();
             var color = Color.white;
             _visibilityRay.material = new Material(Shader.Find("Legacy Shaders/Particles/Additive"));
@@ -600,7 +600,7 @@ namespace OLDD_camera.Camera
             return z > 0 && 0 <= x && x <= 1 && 0 <= y && y <= 1;
         }
 
-        private bool IsTargetVisiable()
+        private bool IsTargetVisible()
         {
             foreach (var body in FlightGlobals.Bodies)
             {
@@ -626,7 +626,7 @@ namespace OLDD_camera.Camera
             var target = new TargetHelper(ThisPart);
             target.Update();
             Vector3 endPoint;
-            if (target.Destination <= _allowedScanDistance && IsInsight(out endPoint) && IsTargetVisiable())
+            if (target.Destination <= _allowedScanDistance && IsInsight(out endPoint) && IsTargetVisible())
             {
                 ScreenMessages.PostScreenMessage(FlightGlobals.activeTarget.vessel.vesselName + " HAS BEEN SCANNED", 3f, ScreenMessageStyle.UPPER_CENTER);
                 if (!_isScienceActivate)
