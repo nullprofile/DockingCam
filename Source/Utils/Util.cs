@@ -114,7 +114,7 @@ namespace OLDD_camera.Utils
             Directory.CreateDirectory(folder);
             name = Path.Combine(folder, name);
             File.WriteAllBytes(name, bytes);
-            ScreenMessages.PostScreenMessage("PHOTO HAS BEEN SAVED TO YOUR SCREENSHOTS FOLDER", 3f, ScreenMessageStyle.UPPER_CENTER);
+            ScreenMessages.PostScreenMessage("PHOTO HAS BEEN SAVED TO YOUR SCREENSHOTS FOLDER. SIZE: " + bytes.Length, 3f, ScreenMessageStyle.UPPER_CENTER);
         }
         public static string GetTimeMark(double universalTime)
         {

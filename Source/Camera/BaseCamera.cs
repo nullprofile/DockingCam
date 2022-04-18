@@ -34,7 +34,7 @@ namespace OLDD_camera.Camera
         private Texture _textureTargetMark;
         internal Texture[] TextureNoSignal;
         internal int TextureNoSignalId;
-        protected RenderTexture RenderTexture;
+        protected RenderTexture BaseRenderTexture;
 
         //private ShaderType _shaderType;
         private int _shaderIndex = 0;
@@ -184,9 +184,9 @@ namespace OLDD_camera.Camera
             // TexturePosition = new Rect(6, 34, WindowPosition.width - 12f, WindowPosition.height - 40f); //42f);
 
             TexturePosition = new Rect(6, lineHeight + titleHeight, WindowPosition.width - lineHeight, WindowPosition.height - (lineHeight + /*28f +*/ titleHeight + 6f)); //42f);
-            RenderTexture = new RenderTexture((int)WindowSize * 4, (int)WindowSize * 4, 24);//, RenderTextureFormat.RGB565);  
-            RenderTexture.active = RenderTexture;
-            RenderTexture.Create();
+            BaseRenderTexture = new RenderTexture((int)WindowSize * 4, (int)WindowSize * 4, 24);//, RenderTextureFormat.RGB565);  
+            RenderTexture.active = BaseRenderTexture;
+            BaseRenderTexture.Create();
             _textureBackGroundCamera = Util.MonoColorRectTexture(new Color(0.45f, 0.45f, 0.45f, 1));
             _textureSeparator = Util.MonoColorVerticalLineTexture(Color.white, (int)TexturePosition.height);
             _textureTargetMark = AssetLoader.texTargetPoint;
@@ -211,7 +211,7 @@ namespace OLDD_camera.Camera
                     {
                         camera.CopyFrom(cameraExample);
                         camera.name = string.Format("{1} copy of {0}", CameraNames[i], WindowCount);
-                        camera.targetTexture = RenderTexture;
+                        camera.targetTexture = BaseRenderTexture;
                         if (i == 2 && dcm != null &&  dcm.cameraCustomNearClipPlane > 0)
                             camera.nearClipPlane = dcm.cameraCustomNearClipPlane;
                     }
@@ -298,21 +298,20 @@ namespace OLDD_camera.Camera
         RenderTexture _renderTextureColor;
         RenderTexture _renderTextureDepth;
 
-        public Texture2D GetPic()
+        public Texture2D GetPic(int horizontalResolution, int verticalResolution)
         {
             RenderTexture CurrentRT = RenderTexture.active;
 
-            Texture2D imageTexture = new Texture2D(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution, TextureFormat.RGB24, false);
+            Texture2D imageTexture = new Texture2D(horizontalResolution, verticalResolution, TextureFormat.RGB24, false);
 
             if (_renderTextureColor == null)
             {
-                _renderTextureColor = new RenderTexture(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution, 0);
-                _renderTextureDepth = new RenderTexture(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution, 24);
+                _renderTextureColor = new RenderTexture(horizontalResolution, verticalResolution, 0);
+                _renderTextureDepth = new RenderTexture(horizontalResolution, verticalResolution, 24);
                 _renderTextureColor.Create();
                 _renderTextureDepth.Create();
             }
             RenderTexture.active = _renderTextureColor;
-
 
             foreach (var a in AllCameras)
             {
@@ -320,7 +319,7 @@ namespace OLDD_camera.Camera
                 a.Render();
             }
 
-           imageTexture.ReadPixels(new Rect(0, 0, dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution), 0, 0);
+            imageTexture.ReadPixels(new Rect(0, 0, horizontalResolution, verticalResolution), 0, 0);
             imageTexture.Apply();
 
             _renderTextureColor.Release();
@@ -329,10 +328,9 @@ namespace OLDD_camera.Camera
             _renderTextureDepth = null;
 
             foreach (var a in AllCameras)
-                a.targetTexture = RenderTexture;
+                a.targetTexture = BaseRenderTexture;
 
             RenderTexture.active = CurrentRT;
-
 
             return imageTexture;
         }
@@ -389,7 +387,8 @@ namespace OLDD_camera.Camera
                     //RenderTexture.SavePng(ThisPart.vessel.vesselName);
                     //takePic = false;
                     //return;
-                    WriteTextureToDrive(GetPic());
+                    if (dcm!= null)
+                    WriteTextureToDrive(GetPic(dcm.cameraHorizontalResolution, dcm.cameraVerticalResolution));
 
                     takePic = false;
                 }
@@ -556,7 +555,7 @@ namespace OLDD_camera.Camera
         protected virtual RenderTexture Render()
         {
             AllCameras.ForEach(a => a.Render());
-            return RenderTexture;
+            return BaseRenderTexture;
         }
 
         public IEnumerator ResizeWindow()

@@ -27,10 +27,12 @@ namespace OLDD_camera
         /// </summary>
         public byte[] InstanceGetImage(Part part)
         {
+            Debug.Log("DockingCamera: Instance get image");
             var cameraModules = part.Modules.OfType<Modules.PartCameraModule>();
 
             foreach (var camera in cameraModules)
             {
+                Debug.Log("DockingCamera: Camera image");
                 // Return the first one
                 return camera.GetPic();
             }

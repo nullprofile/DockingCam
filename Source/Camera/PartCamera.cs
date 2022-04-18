@@ -34,8 +34,8 @@ namespace OLDD_camera.Camera
         private readonly int _resourceUsage;
         private readonly string _resourceName;
         private bool _isRayEnabled;
-        
-        enum Alignment { up, right, down, left};
+
+        enum Alignment { up, right, down, left };
         private Alignment _alignment = Alignment.up;
         private bool _isUpsideDown;
         private bool _isScienceActivate;
@@ -73,6 +73,8 @@ namespace OLDD_camera.Camera
         internal Vector3 CurrentCamPosition;
         internal Quaternion CurrentCamLocalRotation;
         internal Vector3 CurrentCamLocalPosition;
+
+        //internal byte[] _image;
 
         public float RealZoom
         {
@@ -207,7 +209,9 @@ namespace OLDD_camera.Camera
                 }
 
                 if (GUI.Button(new Rect(widthOffset, 186, 80, 25), "PHOTO"))
-                    RenderTexture.SavePng(photoDir, ThisPart.vessel.vesselName);
+                {
+                    BaseRenderTexture.SavePng(photoDir, ThisPart.vessel.vesselName);
+                }
             }
 
             if ((IsOnboard || IsLookAtMe) && (FlightGlobals.ActiveVessel == ThisPart.vessel))
@@ -257,7 +261,7 @@ namespace OLDD_camera.Camera
                     case Alignment.up: RotateY += _rotateStep; break;
                     case Alignment.right: RotateZ -= _rotateStep; break;
                     case Alignment.down: RotateY -= _rotateStep; break;
-                    case Alignment.left: RotateZ += _rotateStep;break;
+                    case Alignment.left: RotateZ += _rotateStep; break;
                 }
             }
             if (GUI.Button(new Rect(widthOffset + ButtonSize * 2, 36, ButtonSize, ButtonSize), "⦿"))
@@ -469,7 +473,7 @@ namespace OLDD_camera.Camera
                 }
             }
         }
-#endregion DRAW LAYERS
+        #endregion DRAW LAYERS
 
         private void CameraPositioning(string lastCameraMode)
         {
@@ -494,11 +498,11 @@ namespace OLDD_camera.Camera
 
             _rotateStep = 1.0f;
             if (CalculatedZoom >= 512) { _rotateStep = 0.02f; return; }
-            if (CalculatedZoom >= 256) {_rotateStep = 0.04f; return;}
-            if (CalculatedZoom >= 128) {_rotateStep = 0.06f; return;}
+            if (CalculatedZoom >= 256) { _rotateStep = 0.04f; return; }
+            if (CalculatedZoom >= 128) { _rotateStep = 0.06f; return; }
             if (CalculatedZoom >= 64) { _rotateStep = 0.07f; return; }
-            if (CalculatedZoom >= 32) {_rotateStep = 0.08f; return;}
-            if (CalculatedZoom >= 16) {_rotateStep = 0.32f; return;}
+            if (CalculatedZoom >= 32) { _rotateStep = 0.08f; return; }
+            if (CalculatedZoom >= 16) { _rotateStep = 0.32f; return; }
             if (CalculatedZoom >= 8) _rotateStep = 0.64f;
         }
 
@@ -659,6 +663,13 @@ namespace OLDD_camera.Camera
             _rotateZbuffer = _rotateYbuffer = _zoomBuffer = 0;
             CurrentZoom = MaxZoom;
             _lastZoom = CurrentZoom;
+        }
+
+        public byte[] Image()
+        {
+            var pic = base.GetPic(256, 256);
+            var image = pic.EncodeToPNG();
+            return image;
         }
     }
 }

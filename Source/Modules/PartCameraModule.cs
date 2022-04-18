@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using OLDD_camera.Camera;
@@ -196,13 +197,18 @@ namespace OLDD_camera.Modules
             if (_camera.IsAuxiliaryWindowButtonPres)
                 StartCoroutine(_camera.ResizeWindow());
             if (_camera.IsActive)
+            {
                 _camera.Update();
+                //_encodedImage = _camera.Image();
+            }
         }
 
         public byte[] GetPic()
         {
-            var texture = _camera.GetPic();
-            return texture.EncodeToPNG();
+            //if (_encodedImage == null)
+            //    return Array.Empty<byte>();
+            //else
+                return _camera.Image();
         }
 
         private void SetCurrentMode(bool a, bool b, bool c, bool d)
